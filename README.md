@@ -80,6 +80,8 @@ if (isset($_GET['data'])) {
 
 ~~~
 
+![](images/Imagen1.png)
+
 También vamos a crear un archivo con nombre GenerarObjeto.php para visualizar los datos serializados y mostrar un enlace a MostrarObjeto.php
 
 ~~~
@@ -136,6 +138,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 </html>
 ~~~
 
+![](images/Imagen2.png)
+
 **¿Qué te permite hacer esto?**
 
 - Crear objetos User con isAdmin = true o false.
@@ -145,12 +149,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 - Probar directamente el exploit en tu script MostrarObjeto.php (o el que verifica isAdmin).
 
 
-![](images/Imagen1.png)
+![](images/Imagen3.png)
 
 Vemos como el objeto serializado sería: 
 
 
-`O:4:"User":2:{s:8:"username";s:4:"Raul";s:7:"isAdmin";b:0;}`
+`O:4:"User":2:{s:8:"username";s:4:"Alberto";s:7:"isAdmin";b:0;}`
 
 ... y nos dá el enlace parar probarlo, enviándolo a MostrarObjeto.php
 
@@ -159,9 +163,9 @@ http://localhost/MostrarObjeto.php?data=O%3A4%3A%22User%22%3A2%3A%7Bs%3A8%3A%22u
 ~~~
 
 Vemos cómo podemos componer la ruta para mostrar el objeto serializado conctenando:
-`http://localhost/MostrarObjeto.php?data=` con el objeto serializado, en este caso: `O:4:"User":2:{s:8:"username";s:4:"Raul";s:7:"isAdmin";b:0;}`
+`http://localhost/MostrarObjeto.php?data=` con el objeto serializado, en este caso: `O:4:"User":2:{s:8:"username";s:4:"Alberto";s:7:"isAdmin";b:0;}`
 
-![](images/Imagen2.png)
+![](images/Imagen4.png)
 
 
 ##  Explotación de Deserialización Insegura
@@ -173,8 +177,6 @@ Esto puede ser utilizado por atacantes, para enviar a nuestros códigos PHP la s
  
 
 **Crear un objeto malicioso en PHP**
-
-![](images/Imagen3.png)
 
 Como podemos ver, del enlace generado, cualquier persona puede saber, el nombre del tipo de objetos, variables y valores que tienen.
 
@@ -195,7 +197,7 @@ Podemos cambiar los datos del valor IsAdmin:
 MostrarObjeto.php?data=O%3A4%3A%22User%22%3A2%3A%7Bs%3A8%3A%22username%22%3Bs%3A4%3A%22Raul%22%3Bs%3A7%3A%22isAdmin%22%3Bb%3A**1**%3B%7D 
 ~~~
 
-![](images/Imagen4.png)
+![](images/Imagen5.png)
 
 Raul podría haber cambiado su estado, convirtiéndose en administrador.
 
@@ -214,6 +216,8 @@ echo urlencode(serialize(new User()));
 ?>
 ~~~
 
+![](images/Imagen6.png)
+
 Salida esperada (ejemplo):
 
 ~~~
@@ -222,24 +226,19 @@ O%3A4%3A%22User%22%3A2%3A%7Bs%3A8%3A%22username%22%3Bs%3A6%3A%22hacker%22%3Bs%3A
 
 Este objeto serializado podemos usarlo para enviarlo a MostrarObjeto.php y así hacker sería administrador.
 
-![](images/Imagen5.png)
-
+![](images/Imagen7.png)
 
 - Copiar la salida obtenida
 
 - Acceder a esta URL en el navegador `http://localhost/MostrarObjdeto.php?data=` y concatenarla con el código obtenido:
 
-
 Al mandarlo, tendríamos el mismo resultado, Hacker se convierte en `Admin`.
-
 
 ~~~
 http://localhost/MostrarObjdeto.php?data=O%3A4%3A%22User%22%3A2%3A%7Bs%3A8%3A%22username%22%3Bs%3A6%3A%22hacker%22%3Bs%3A7%3A%22isAdmin%22%3Bb%3A1%3B%7D
 ~~~
 
-
-![](images/Imagen6.png)
-
+![](images/Imagen8.png)
 
 **Intentar RCE con __destruct()**
 
@@ -310,6 +309,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 </html>
 
 ~~~
+
+![](images/Imagen9.png)
 
 Este cambio introduce:
 
@@ -387,6 +388,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 </html>
 ~~~
 
+![](images/Imagen10.png)
+
 🧪 Para la prueba
 
 1. Marca "Sí" en la opción de administrador.
@@ -397,15 +400,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 4. Al deserializarlo en **MostrarObjeto.php**, se ejecuta automáticamente en el **__destruct(**).
 
-![](images/Imagen7.png)
+![](images/Imagen11.png)
 
 El atacante habría inyectado en la serialización la ejecución del comando `ls -l /tmp/output.txt`pero podría haber sido cualquier otro comando.
 
-![](images/Imagen8.png)
+![](images/Imagen12.png)
 
 Vemos en el resultado que la ejecución no parece anómalo, pero veamos que ha pasado en el servidor.
 
-![](images/Imagen9.png)
+![](images/Imagen13.png)
 
 Veamos que contiene el archivo `/tmp/output.txt`. 
 
@@ -415,7 +418,7 @@ Como nosotros extamos usando docker, o bien entramos dentros del servidor apache
 docker exec -it lamp-php83 /bin/bash -c 'cat /tmp/output.txt'
 ~~~
 
-![](images/Imagen10.png)
+![](images/Imagen14.png)
 
 Como vemos, hemos podido ejecutar comandos dentro del servidor. En este caso con el usuario **www-data**, pero si lo combinamos con otros ataques como escalada de privilegios, podríamos haber ejecutado cualquier comando.
 
@@ -512,7 +515,7 @@ if (isset($_GET['data'])) {
 }
 ~~~
 
-
+![](images/Imagen15.png)
 
 Esta versión:
 
@@ -537,7 +540,7 @@ Si se detecta un parámetro no permitido (bypass en este caso), se muestra el er
 
 `Error: Clave inválida detectada`
 
-![](images/Imagen11.png)
+![](images/Imagen16.png)
 
 
 ✅ ¿Qué mejora esta versión?
@@ -623,6 +626,8 @@ if (isset($_GET['data'])) {
 }
 ~~~
 
+![](images/Imagen17.png)
+
 Vamos a crear también el archivo **GenerarObjetoJson.php** que nos creará un objeto JSON Alumno que es administrador:
 
 ~~~
@@ -633,8 +638,10 @@ $data = [
     "cmd" => "id" // esto no se ejecutará, solo se mostrará como texto
 ];
 echo urlencode(json_encode($data));
-
 ~~~
+
+![](images/Imagen18.png)
+
 🧪 Cómo probarlo
 
 - Acceder al php de generación de JSON:
@@ -659,7 +666,7 @@ La ejecución solo se permitirá si los datos contienen exclusivamente **usernam
 
 Ahora nos muestra los datos que hemos introducido. Incluso si hemos intentado introducir un comando para explotar, nos muestra sólo el cómando, no lo ejecuta:
 
-![](images/Imagen12.png)
+![](images/Imagen19.png)
 
 - Y si probamos  modificando **MostrarObjetoJson.php** para que no esté incluído el comando:
 
@@ -669,6 +676,7 @@ class User {
     private $isAdmin = false;
 ~~~
 
+![](images/Imagen20.png)
 
 - Si quieres puedes utilizar el siguiente código  para crear el objeto de forma interactiva, nos mostrará el enlace a **MostrarObjetoJson.php** con el objeto.
 
@@ -725,7 +733,9 @@ class User {
 </html>
 
 ~~~
-![](images/Imagen13.png)
+![](images/Imagen21.png)
+
+![](images/Imagen22.png)
 
 ✅ Ventajas de usar JSON
 
@@ -749,6 +759,8 @@ $data = [
 echo urlencode(json_encode($data));
 ~~~
 
+![](images/Imagen23.png)
+
 Tendremos unos datos codificados,  por lo que para probar, tendríamos el siguiente enlace:
  
 ~~~
@@ -757,7 +769,9 @@ http://localhost/MostrarObjetoJson.php?data=%7B%22username%22%3A%22alumno%22%2C%
 
 Ahora vemos como nos da error en el caso de que intentemos meter los objetos serializados en vez de mandarlos en forma de JSON.
 
-![](images/Imagen14.png)
+![](images/Imagen24.png)
+
+![](images/Imagen25.png)
 
 El código no lo detecta como inválido
 
